@@ -1,0 +1,501 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>read_fit_dM</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-01-06"><meta name="DC.source" content="read_fit_dM.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">read fits file</a></li><li><a href="#3">B-layer processing</a></li><li><a href="#4">V layer processing</a></li><li><a href="#5">Star Matching, star magnitude, dM caculate</a></li><li><a href="#6">diagram</a></li></ul></div><pre class="codeinput">clear <span class="string">all</span>;
+</pre><h2 id="2">read fits file</h2><pre class="codeinput">Sb=FITS.read2sim(<span class="string">'m93_b.fits'</span>);
+Sv=FITS.read2sim(<span class="string">'m93_v.fits'</span>);
+table = readtable(<span class="string">'m93_cata'</span>);
+gnd_true_table= readtable(<span class="string">'theorem/387M.csv'</span>); <span class="comment">%first column is B_V second col is V</span>
+distance = 881;<span class="comment">%distance of the cluster in pc</span>
+</pre><pre class="codeoutput">Warning: Column headers from the file were modified to make them valid MATLAB
+identifiers before creating variable names for the table. The original column
+headers are saved in the VariableDescriptions property.
+Set 'VariableNamingRule' to 'preserve' to use the original column headers as
+table variable names. 
+</pre><h2 id="3">B-layer processing</h2><pre class="codeinput">image_b = abs(fitsread(<span class="string">'m93_b.fits'</span>));
+image_b_raw = image_b;
+<span class="comment">%whos data</span>
+<span class="comment">%fitsdisp('20200508_M57-001b100.fits');</span>
+image_b = log(image_b);
+figure();
+imagesc(abs(image_b));
+<span class="comment">% Low pass filtering</span>
+h = fspecial(<span class="string">'gaussian'</span>, 100, 1);
+image_b_f = imfilter(image_b, h);
+<span class="comment">% threshold</span>
+<span class="comment">% m36: 6.7</span>
+image_b_f(image_b_f&lt;7.0) = 0; <span class="comment">%MODIFY THIS VALUE!!</span>
+<span class="comment">% star region</span>
+image_b_ff = image_b_f;
+image_b_ff(image_b_ff &gt; 0) = 1;
+figure();
+imagesc(image_b_ff);
+title(<span class="string">'star region'</span>);
+image_b_raw = image_b_raw.*image_b_ff;
+figure();
+imagesc(image_b_raw);
+title(<span class="string">'Processed Image'</span>);
+<span class="comment">% find local maximum</span>
+image_b_max = imregionalmax(image_b_f);
+figure();
+imagesc(image_b_max);
+title(<span class="string">'Star peaks'</span>);
+fprintf(<span class="string">'found %d stars in B layer!\n'</span>, sum(sum(image_b_max)));
+</pre><pre class="codeoutput">found 266 stars in B layer!
+</pre><h2 id="4">V layer processing</h2><pre class="codeinput">image_v = abs(fitsread(<span class="string">'m93_v.fits'</span>));
+image_v_raw = image_v;
+<span class="comment">%whos data</span>
+<span class="comment">%fitsdisp('20200508_M57-001b100.fits');</span>
+image_v = log(image_v);
+figure();
+imagesc(image_v);
+<span class="comment">% Low pass filtering</span>
+h = fspecial(<span class="string">'gaussian'</span>, 100, 1);
+image_v_f = imfilter(image_v, h);
+figure();
+imagesc(image_v_f);
+<span class="comment">% threshold</span>
+<span class="comment">% m36 :7</span>
+image_v_f(image_v_f&lt;7.8) = 0; <span class="comment">%MODIFY THIS VALUE!!</span>
+<span class="comment">% star region</span>
+image_v_ff = image_v_f;
+image_v_ff(image_v_ff &gt; 0) = 1;
+figure();
+imagesc(image_v_ff);
+title(<span class="string">'star region'</span>);
+image_v_raw = image_v_raw.*image_v_ff;
+<span class="comment">% find local maximum</span>
+image_v_max = imregionalmax(image_v_f);
+fprintf(<span class="string">'found %d stars in V layer!\n'</span>, sum(sum(image_v_max)));
+</pre><h2 id="5">Star Matching, star magnitude, dM caculate</h2><pre class="codeinput">[height, width] = size(image_v_max);
+result = [];
+match = 0;
+error =1;
+r = 10;
+err_b = 0.003; <span class="comment">%error of catalog</span>
+err_v = 0.003;
+sz = size(table);
+h = sz(1);
+dMb =[];
+dMv =[];
+<span class="keyword">for</span> i = 1+r : height -r
+    <span class="keyword">for</span> k = 1+r : width -r
+        match = 0;
+        <span class="keyword">if</span> image_v_max(i,k) == 1
+            wcs_b = xy2coo(Sb(1), i, k).Cat;
+            wcs_v = xy2coo(Sv(1), i, k).Cat;
+            xy = coo2xy(Sb(1), wcs_v(1), wcs_v(2)).Cat;
+            ii = round(xy(1));
+            kk = round(xy(2));
+            <span class="comment">% find whether B also match</span>
+            <span class="keyword">if</span>(sum(sum(image_b_max(ii-error:ii+error, kk-error:kk+error))) == 1)
+                match = 1;
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> match == 1
+                <span class="comment">%1.1 calculate dMb</span>
+                <span class="keyword">for</span> g = 1:h
+                    dV = sqrt((table{g, 1}- rad2deg(wcs_v(1)))^2 + (table{g,2}-rad2deg(wcs_v(2)))^2);
+                    dB = sqrt((table{g, 1}- rad2deg(wcs_b(1)))^2 + (table{g,2}-rad2deg(wcs_b(2)))^2); <span class="comment">%error distance</span>
+                    <span class="keyword">if</span>(dB &lt; err_b)
+                        t = table{g, <span class="string">'Bmag'</span>}-(-2.5)*log10(sum(sum(image_b_raw(i-r: i+r,k-r:k+r))));
+                        dMb = [dMb, t];
+                        fprintf(<span class="string">'B match at x:%d, y:%d, dM=%d\n'</span>, i, k, t);
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span>(dV &lt; err_v)
+                        t = table{g, <span class="string">'Vmag'</span>}-(-2.5)*log10(sum(sum(image_b_raw(i-r: i+r,k-r:k+r))));
+                        dMv = [dMv, t];
+                       fprintf(<span class="string">'V match at x:%d, y:%d, dM=%d\n'</span>, i, k, t);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+
+                <span class="comment">%2. search through a small region in B image to find peak</span>
+                peak = 0;
+
+                <span class="keyword">for</span> m = ii-error: ii+error
+                    <span class="keyword">for</span> n = kk - error: kk+error
+                        <span class="keyword">if</span>  m&gt;0 &amp;&amp; m&lt;=2048 &amp;&amp; n&gt;0 &amp;&amp;n&lt;=2048&amp;&amp;image_b_max(m, n) == 1
+                            peak = 1;
+                            result = [result; log10(sum(sum(image_b_raw(m-r: m+r,n-r:n+r)))),<span class="keyword">...</span>
+                                log10(sum(sum(image_v_raw(i-r: i+r, k-r:k+r))))];
+                            <span class="keyword">break</span>;
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> peak == 1
+                        <span class="keyword">break</span>;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                <span class="keyword">if</span> peak ~= 1
+                    fprintf(<span class="string">'NO MATCHED PEAK IN B IMAGE!\n'</span>);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="comment">% instrument mag</span>
+
+result = result * -2.5;
+</pre><pre class="codeoutput">B match at x:206, y:778, dM=2.941550e+01
+V match at x:206, y:778, dM=2.809550e+01
+B match at x:242, y:613, dM=2.953978e+01
+V match at x:242, y:613, dM=2.881978e+01
+B match at x:307, y:883, dM=2.331667e+01
+V match at x:307, y:883, dM=2.243467e+01
+B match at x:310, y:1013, dM=2.795774e+01
+V match at x:310, y:1013, dM=2.811774e+01
+B match at x:530, y:254, dM=3.289705e+01
+V match at x:530, y:254, dM=3.178705e+01
+B match at x:646, y:1852, dM=2.514093e+01
+V match at x:646, y:1852, dM=2.480093e+01
+B match at x:689, y:905, dM=2.759958e+01
+V match at x:689, y:905, dM=2.569958e+01
+B match at x:694, y:919, dM=2.757000e+01
+V match at x:694, y:919, dM=2.567000e+01
+B match at x:701, y:950, dM=2.335121e+01
+V match at x:701, y:950, dM=2.371121e+01
+B match at x:770, y:1572, dM=2.977387e+01
+V match at x:770, y:1572, dM=2.903387e+01
+B match at x:775, y:1614, dM=2.654690e+01
+V match at x:775, y:1614, dM=2.626690e+01
+B match at x:815, y:1934, dM=2.871973e+01
+V match at x:815, y:1934, dM=2.855973e+01
+B match at x:827, y:1132, dM=2.275505e+01
+V match at x:827, y:1132, dM=2.273505e+01
+B match at x:831, y:1106, dM=2.625306e+01
+V match at x:831, y:1106, dM=2.623306e+01
+B match at x:847, y:1061, dM=3.169970e+01
+V match at x:847, y:1061, dM=3.055970e+01
+B match at x:874, y:986, dM=2.665206e+01
+V match at x:874, y:986, dM=2.670206e+01
+B match at x:899, y:320, dM=2.711579e+01
+V match at x:899, y:320, dM=2.707579e+01
+V match at x:906, y:1802, dM=2.946068e+01
+B match at x:910, y:760, dM=2.748306e+01
+V match at x:910, y:760, dM=2.768306e+01
+B match at x:928, y:226, dM=2.810302e+01
+V match at x:928, y:226, dM=2.755302e+01
+B match at x:946, y:1204, dM=2.186002e+01
+V match at x:946, y:1204, dM=2.130002e+01
+B match at x:971, y:1209, dM=2.368908e+01
+V match at x:971, y:1209, dM=2.312908e+01
+B match at x:981, y:761, dM=2.680705e+01
+V match at x:981, y:761, dM=2.570705e+01
+B match at x:992, y:655, dM=2.713699e+01
+V match at x:992, y:655, dM=2.879699e+01
+B match at x:1000, y:822, dM=2.695176e+01
+V match at x:1000, y:822, dM=2.975176e+01
+B match at x:1002, y:968, dM=2.491008e+01
+V match at x:1002, y:968, dM=2.589008e+01
+B match at x:1018, y:1152, dM=2.169548e+01
+V match at x:1018, y:1152, dM=2.177448e+01
+B match at x:1020, y:1601, dM=3.043704e+01
+V match at x:1020, y:1601, dM=2.922704e+01
+B match at x:1031, y:989, dM=2.220167e+01
+V match at x:1031, y:989, dM=2.318167e+01
+B match at x:1047, y:1685, dM=2.638674e+01
+V match at x:1047, y:1685, dM=2.621674e+01
+B match at x:1050, y:1159, dM=2.629967e+01
+V match at x:1050, y:1159, dM=2.701967e+01
+B match at x:1067, y:1212, dM=2.956677e+01
+V match at x:1067, y:1212, dM=2.886677e+01
+B match at x:1067, y:1212, dM=2.880677e+01
+V match at x:1067, y:1212, dM=2.839677e+01
+B match at x:1075, y:944, dM=2.479769e+01
+V match at x:1075, y:944, dM=2.121769e+01
+B match at x:1075, y:944, dM=2.261069e+01
+V match at x:1075, y:944, dM=2.232669e+01
+B match at x:1077, y:804, dM=2.522091e+01
+V match at x:1077, y:804, dM=2.593091e+01
+B match at x:1085, y:1563, dM=2.860515e+01
+V match at x:1085, y:1563, dM=2.801515e+01
+B match at x:1092, y:1202, dM=2.534558e+01
+V match at x:1092, y:1202, dM=2.676558e+01
+B match at x:1094, y:633, dM=2.998017e+01
+V match at x:1094, y:633, dM=2.861017e+01
+B match at x:1111, y:830, dM=2.417739e+01
+V match at x:1111, y:830, dM=2.402939e+01
+B match at x:1123, y:383, dM=2.919305e+01
+V match at x:1123, y:383, dM=2.854305e+01
+B match at x:1140, y:1049, dM=2.393281e+01
+V match at x:1140, y:1049, dM=2.354881e+01
+B match at x:1189, y:1830, dM=2.910474e+01
+V match at x:1189, y:1830, dM=2.709474e+01
+B match at x:1263, y:1185, dM=2.642431e+01
+V match at x:1263, y:1185, dM=2.522431e+01
+B match at x:1278, y:580, dM=2.788499e+01
+V match at x:1278, y:580, dM=2.657499e+01
+B match at x:1305, y:892, dM=2.477821e+01
+V match at x:1305, y:892, dM=2.499821e+01
+B match at x:1305, y:892, dM=2.692821e+01
+V match at x:1305, y:892, dM=2.629821e+01
+B match at x:1313, y:1162, dM=2.829297e+01
+V match at x:1313, y:1162, dM=2.896297e+01
+B match at x:1363, y:1250, dM=2.914740e+01
+V match at x:1363, y:1250, dM=2.987740e+01
+B match at x:1404, y:778, dM=2.848870e+01
+V match at x:1404, y:778, dM=2.643870e+01
+B match at x:1444, y:1065, dM=3.052635e+01
+V match at x:1444, y:1065, dM=2.669635e+01
+B match at x:1450, y:233, dM=3.067114e+01
+V match at x:1450, y:233, dM=2.779114e+01
+B match at x:1458, y:220, dM=2.979980e+01
+V match at x:1458, y:220, dM=2.691980e+01
+B match at x:1513, y:536, dM=3.029013e+01
+V match at x:1513, y:536, dM=2.974013e+01
+B match at x:1578, y:130, dM=3.252088e+01
+V match at x:1578, y:130, dM=3.162088e+01
+B match at x:1622, y:791, dM=2.344983e+01
+V match at x:1622, y:791, dM=2.317983e+01
+B match at x:1640, y:1656, dM=2.438108e+01
+V match at x:1640, y:1656, dM=2.470108e+01
+B match at x:1718, y:1702, dM=2.497526e+01
+V match at x:1718, y:1702, dM=2.462526e+01
+B match at x:1835, y:504, dM=2.872413e+01
+V match at x:1835, y:504, dM=2.835413e+01
+B match at x:1865, y:666, dM=2.539440e+01
+V match at x:1865, y:666, dM=2.476440e+01
+B match at x:1903, y:556, dM=2.832221e+01
+V match at x:1903, y:556, dM=2.802221e+01
+</pre><h2 id="6">diagram</h2><pre class="codeinput">result(:,1) = result(:,1) + median(dMb);
+result(:,2) = result(:,2) + median(dMv);
+fprintf(<span class="string">'dM of B: %f\n'</span>, median(dMb));
+fprintf(<span class="string">'dM of V: %f\n'</span>, median(dMv));
+B_V = result(:,1) - result(:,2);
+V = result(:,2) -5*log10(distance)+5;
+B_V_true = gnd_true_table{:,1};
+V_true = gnd_true_table{:,2};
+figure();
+HR = axes;
+scatter(HR ,B_V, V, <span class="string">'filled'</span>); <span class="comment">% our data</span>
+hold;
+scatter(HR, B_V_true, V_true, <span class="string">'filled'</span>,<span class="string">'r'</span>);
+HR.YDir = <span class="string">'reverse'</span>;
+title(<span class="string">'sudo HR diagram'</span>);
+xlabel(<span class="string">'B-V'</span>);
+ylabel(<span class="string">'V'</span>);
+</pre><pre class="codeoutput">dM of B: 27.126387
+dM of V: 26.702064
+Current plot held
+</pre><img vspace="5" hspace="5" src="read_fit_dM_03.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%
+clear all;
+%% read fits file
+Sb=FITS.read2sim('m93_b.fits');
+Sv=FITS.read2sim('m93_v.fits');
+table = readtable('m93_cata');
+gnd_true_table= readtable('theorem/387M.csv'); %first column is B_V second col is V
+distance = 881;%distance of the cluster in pc
+%% B-layer processing
+image_b = abs(fitsread('m93_b.fits'));
+image_b_raw = image_b;
+%whos data
+%fitsdisp('20200508_M57-001b100.fits');
+image_b = log(image_b);
+figure();
+imagesc(abs(image_b));
+% Low pass filtering
+h = fspecial('gaussian', 100, 1);
+image_b_f = imfilter(image_b, h);
+% threshold
+% m36: 6.7
+image_b_f(image_b_f<7.0) = 0; %MODIFY THIS VALUE!!
+% star region
+image_b_ff = image_b_f;
+image_b_ff(image_b_ff > 0) = 1;
+figure();
+imagesc(image_b_ff);
+title('star region');
+image_b_raw = image_b_raw.*image_b_ff;
+figure();
+imagesc(image_b_raw);
+title('Processed Image');
+% find local maximum
+image_b_max = imregionalmax(image_b_f);
+figure();
+imagesc(image_b_max);
+title('Star peaks');
+fprintf('found %d stars in B layer!\n', sum(sum(image_b_max)));
+%% V layer processing
+image_v = abs(fitsread('m93_v.fits'));
+image_v_raw = image_v;
+%whos data
+%fitsdisp('20200508_M57-001b100.fits');
+image_v = log(image_v);
+figure();
+imagesc(image_v);
+% Low pass filtering
+h = fspecial('gaussian', 100, 1);
+image_v_f = imfilter(image_v, h);
+figure();
+imagesc(image_v_f);
+% threshold
+% m36 :7
+image_v_f(image_v_f<7.8) = 0; %MODIFY THIS VALUE!!
+% star region 
+image_v_ff = image_v_f;
+image_v_ff(image_v_ff > 0) = 1;
+figure();
+imagesc(image_v_ff);
+title('star region');
+image_v_raw = image_v_raw.*image_v_ff;
+% find local maximum
+image_v_max = imregionalmax(image_v_f);
+fprintf('found %d stars in V layer!\n', sum(sum(image_v_max)));
+
+%% Star Matching, star magnitude, dM caculate
+[height, width] = size(image_v_max);
+result = [];
+match = 0;
+error =1;
+r = 10;
+err_b = 0.003; %error of catalog
+err_v = 0.003;
+sz = size(table);
+h = sz(1);
+dMb =[];
+dMv =[];
+for i = 1+r : height -r
+    for k = 1+r : width -r
+        match = 0;
+        if image_v_max(i,k) == 1
+            wcs_b = xy2coo(Sb(1), i, k).Cat;
+            wcs_v = xy2coo(Sv(1), i, k).Cat;
+            xy = coo2xy(Sb(1), wcs_v(1), wcs_v(2)).Cat;
+            ii = round(xy(1));
+            kk = round(xy(2));
+            % find whether B also match
+            if(sum(sum(image_b_max(ii-error:ii+error, kk-error:kk+error))) == 1)
+                match = 1;
+            end
+            if match == 1
+                %1.1 calculate dMb
+                for g = 1:h
+                    dV = sqrt((table{g, 1}- rad2deg(wcs_v(1)))^2 + (table{g,2}-rad2deg(wcs_v(2)))^2);
+                    dB = sqrt((table{g, 1}- rad2deg(wcs_b(1)))^2 + (table{g,2}-rad2deg(wcs_b(2)))^2); %error distance
+                    if(dB < err_b)
+                        t = table{g, 'Bmag'}-(-2.5)*log10(sum(sum(image_b_raw(i-r: i+r,k-r:k+r))));
+                        dMb = [dMb, t];
+                        fprintf('B match at x:%d, y:%d, dM=%d\n', i, k, t);
+                    end
+                    if(dV < err_v)
+                        t = table{g, 'Vmag'}-(-2.5)*log10(sum(sum(image_b_raw(i-r: i+r,k-r:k+r))));
+                        dMv = [dMv, t];
+                       fprintf('V match at x:%d, y:%d, dM=%d\n', i, k, t);
+                    end
+                end
+               
+                %2. search through a small region in B image to find peak 
+                peak = 0;
+
+                for m = ii-error: ii+error
+                    for n = kk - error: kk+error
+                        if  m>0 && m<=2048 && n>0 &&n<=2048&&image_b_max(m, n) == 1 
+                            peak = 1;                
+                            result = [result; log10(sum(sum(image_b_raw(m-r: m+r,n-r:n+r)))),...
+                                log10(sum(sum(image_v_raw(i-r: i+r, k-r:k+r))))];
+                            break;
+                        end
+                    end
+                    if peak == 1
+                        break;
+                    end
+                end
+                if peak ~= 1
+                    fprintf('NO MATCHED PEAK IN B IMAGE!\n');
+                end
+            end
+        end
+    end
+end
+% instrument mag
+
+result = result * -2.5;
+%% diagram
+result(:,1) = result(:,1) + median(dMb);
+result(:,2) = result(:,2) + median(dMv);
+fprintf('dM of B: %f\n', median(dMb));
+fprintf('dM of V: %f\n', median(dMv));
+B_V = result(:,1) - result(:,2);
+V = result(:,2) -5*log10(distance)+5;
+B_V_true = gnd_true_table{:,1};
+V_true = gnd_true_table{:,2};
+figure();
+HR = axes;
+scatter(HR ,B_V, V, 'filled'); % our data
+hold;
+scatter(HR, B_V_true, V_true, 'filled','r');
+HR.YDir = 'reverse';
+title('sudo HR diagram');
+xlabel('B-V');
+ylabel('V');
+
+
+
+##### SOURCE END #####
+--></body></html>
