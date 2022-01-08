@@ -1,13 +1,13 @@
 %%
 clear all;
 %% read fits file
-Sb=FITS.read2sim('m93_b.fits');
-Sv=FITS.read2sim('m93_v.fits');
-table = readtable('m93_cata');
+Sb=FITS.read2sim('m37_b.fits');
+Sv=FITS.read2sim('m37_v.fits');
+table = readtable('m37_b_cata');
 gnd_true_table= readtable('theorem/387M.csv'); %first column is B_V second col is V
-distance = 881;%distance of the cluster in pc
+distance = 1383;%distance of the cluster in pc
 %% B-layer processing
-image_b = abs(fitsread('m93_b.fits'));
+image_b = abs(fitsread('m37_b.fits'));
 image_b_raw = image_b;
 %whos data
 %fitsdisp('20200508_M57-001b100.fits');
@@ -19,7 +19,7 @@ h = fspecial('gaussian', 100, 1);
 image_b_f = imfilter(image_b, h);
 % threshold
 % m36: 6.7
-image_b_f(image_b_f<7.0) = 0; %MODIFY THIS VALUE!!
+image_b_f(image_b_f<7.8) = 0; %MODIFY THIS VALUE!!
 % star region
 image_b_ff = image_b_f;
 image_b_ff(image_b_ff > 0) = 1;
@@ -37,7 +37,7 @@ imagesc(image_b_max);
 title('Star peaks');
 fprintf('found %d stars in B layer!\n', sum(sum(image_b_max)));
 %% V layer processing
-image_v = abs(fitsread('m93_v.fits'));
+image_v = abs(fitsread('m37_v.fits'));
 image_v_raw = image_v;
 %whos data
 %fitsdisp('20200508_M57-001b100.fits');
@@ -67,8 +67,8 @@ fprintf('found %d stars in V layer!\n', sum(sum(image_v_max)));
 [height, width] = size(image_v_max);
 result = [];
 match = 0;
-error =1;
-r = 10;
+error =2;
+r = 5;
 err_b = 0.003; %error of catalog
 err_v = 0.003;
 sz = size(table);
